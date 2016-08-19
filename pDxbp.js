@@ -76,7 +76,7 @@ function defaultDistribution(tooltip) {
   d3.json(defaultDistributions, (error, result) => {
     if (error || !result) return;
 
-    const xbp = explodingBoxplot();
+    const xbp = explodingBoxplot.plot();
     boxPlotFunctions.xbp = xbp;
 
     if (tooltip) {
