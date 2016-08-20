@@ -41,7 +41,7 @@
     selection.attr('r', chartOptions.datapoints.radius).attr('fill', function (d) {
       return colorScale(d[chartOptions.data.color_index]);
     }).attr('cx', function () /* d */{
-      var w = xScale.rangeBand();
+      var w = xScale.bandwidth();
       return Math.floor(Math.random() * w);
     }).attr('cy', function (d) {
       return yScale(d[chartOptions.axes.y.label]);
@@ -64,7 +64,8 @@
 
     var displayOutliers = elem.selectAll('.point').data(groups[i].outlier);
 
-    displayOutliers.enter().append('circle');
+    // displayOutliers.enter()
+    //   .append('circle');
 
     displayOutliers.exit().remove();
 
@@ -82,30 +83,29 @@
       constituents: constituents
     };
 
-    displayOutliers.attr('cx', xScale.rangeBand() * 0.5).attr('cy', yScale(groups[i].quartiles[1])).call(initJitter, initJitterOptions).transition().ease(d3$1.ease('back-out')).delay(function () {
+    displayOutliers.enter().append('circle').merge(displayOutliers).attr('cx', xScale.bandwidth() * 0.5).attr('cy', yScale(groups[i].quartiles[1])).call(initJitter, initJitterOptions).transition().ease(d3$1.easeBackOut).delay(function () {
       return transitionTime * 1.5 + 100 * Math.random();
     }).duration(function () {
       return transitionTime * 1.5 + transitionTime * 1.5 * Math.random();
     }).call(drawJitter, drawJitterOptions);
   }
 
-  function hideBoxplot(g, options) {
+  function hideBoxplot(d, options) {
     console.log('hideBoxplot() was called');
 
-    // console.log('arguments', arguments);
-    var s = this;
+    // console.log('arguments from hideBoxplot()', arguments);
     var xScale = options.xScale;
     var yScale = options.yScale;
 
-    s.select('rect.box').attr('x', xScale.rangeBand() * 0.5).attr('width', 0).attr('y', function (d) {
-      return yScale(d.quartiles[1]);
+    d.select('rect.box').attr('x', xScale.bandwidth() * 0.5).attr('width', 0).attr('y', function (e) {
+      return yScale(e.quartiles[1]);
     }).attr('height', 0);
 
     // median line
-    s.selectAll('line').attr('x1', xScale.rangeBand() * 0.5).attr('x2', xScale.rangeBand() * 0.5).attr('y1', function (d) {
-      return yScale(d.quartiles[1]);
-    }).attr('y2', function (d) {
-      return yScale(d.quartiles[1]);
+    d.selectAll('line').attr('x1', xScale.bandwidth() * 0.5).attr('x2', xScale.bandwidth() * 0.5).attr('y1', function (e) {
+      return yScale(e.quartiles[1]);
+    }).attr('y2', function (e) {
+      return yScale(e.quartiles[1]);
     });
   }
 
@@ -126,10 +126,13 @@
       yScale: yScale
     };
 
-    d3$1.select('#explodingBoxplot' + chartOptions.id + i).select('g.box').transition().ease(d3$1.ease('back-in')).duration(transitionTime * 1.5).call(hideBoxplot, hideBoxplotOptions);
+    d3$1.select('#explodingBoxplot' + chartOptions.id + i).select('g.box').transition().ease(d3$1.easeBackIn).duration(transitionTime * 1.5).call(hideBoxplot, hideBoxplotOptions);
 
     var explodeNormal = d3$1.select('#explodingBoxplot' + chartOptions.id + i).select('.normal-points').selectAll('.point').data(groups[i].normal);
-    explodeNormal.enter().append('circle');
+
+    // explodeNormal.enter()
+    //   .append('circle');
+
     explodeNormal.exit().remove();
 
     var drawJitterOptions = {
@@ -146,7 +149,7 @@
       constituents: constituents
     };
 
-    explodeNormal.attr('cx', xScale.rangeBand() * 0.5).attr('cy', yScale(groups[i].quartiles[1])).call(initJitter, initJitterOptions).transition().ease(d3$1.ease('back-out')).delay(function () {
+    explodeNormal.enter().append('circle').merge(explodeNormal).attr('cx', xScale.bandwidth() * 0.5).attr('cy', yScale(groups[i].quartiles[1])).call(initJitter, initJitterOptions).transition().ease(d3$1.easeBackOut).delay(function () {
       return transitionTime * 1.5 + 100 * Math.random();
     }).duration(function () {
       return transitionTime * 1.5 + transitionTime * 1.5 * Math.random();
@@ -174,13 +177,17 @@
       transitionTime: transitionTime,
       groups: groups
     };
-    var s = d3$1.select('#explodingBoxplot_box' + chartOptions.id + i).on('click', function () /* d */{
+
+    var s = d3$1.select('#explodingBoxplot_box' + chartOptions.id + i);
+    // const s = d3.select(this);
+    console.log('s from drawBoxplot', s);
+
+    s.on('click', function () /* d */{
       explodeBoxplot(i, explodeBoxplotOptions);
       state.explodedBoxplots.push(i);
       // console.log('state.explodedBoxplots', state.explodedBoxplots);
     });
 
-    // const s = d3.select(this);
     if (state.explodedBoxplots.indexOf(i) >= 0) {
       explodeBoxplot(i, explodeBoxplotOptions);
       jitterPlot(i, chartOptions);
@@ -201,8 +208,11 @@
 
     jitterPlot(i, jitterPlotOptions);
 
+    var drawBoxplotBoxSelection = s.select('rect.box');
+    console.log('drawBoxplotBoxSelection', drawBoxplotBoxSelection);
     // box
-    s.select('rect.box').transition().duration(transitionTime).attr('x', 0).attr('width', xScale.rangeBand()).attr('y', function (e) {
+    s.select('rect.box').transition().duration(transitionTime).attr('x', 0).attr('width', xScale.bandwidth()).attr('y', function (e) {
+      console.log('e from drawBoxplotBoxSelection', e);
       return yScale(e.quartiles[2]);
     }).attr('height', function (e) {
       return yScale(e.quartiles[0]) - yScale(e.quartiles[2]);
@@ -210,36 +220,40 @@
       return colorScale(e.normal[0][chartOptions.data.color_index]);
     });
 
+    var drawBoxplotMedianLineSelection = s.select('line.median');
+    console.log('drawBoxplotMedianLineSelection', drawBoxplotMedianLineSelection);
+
     // median line
-    s.select('line.median').transition().duration(transitionTime).attr('x1', 0).attr('x2', xScale.rangeBand()).attr('y1', function (e) {
+    s.select('line.median').transition().duration(transitionTime).attr('x1', 0).attr('x2', xScale.bandwidth()).attr('y1', function (e) {
+      console.log('e from drawBoxplotMedianLineSelection', e);
       return yScale(e.quartiles[1]);
     }).attr('y2', function (e) {
       return yScale(e.quartiles[1]);
     });
 
     // min line
-    s.select('line.min.hline').transition().duration(transitionTime).attr('x1', xScale.rangeBand() * 0.25).attr('x2', xScale.rangeBand() * 0.75).attr('y1', function (e) {
+    s.select('line.min.hline').transition().duration(transitionTime).attr('x1', xScale.bandwidth() * 0.25).attr('x2', xScale.bandwidth() * 0.75).attr('y1', function (e) {
       return yScale(Math.min(e.min, e.quartiles[0]));
     }).attr('y2', function (e) {
       return yScale(Math.min(e.min, e.quartiles[0]));
     });
 
     // min vline
-    s.select('line.min.vline').transition().duration(transitionTime).attr('x1', xScale.rangeBand() * 0.5).attr('x2', xScale.rangeBand() * 0.5).attr('y1', function (e) {
+    s.select('line.min.vline').transition().duration(transitionTime).attr('x1', xScale.bandwidth() * 0.5).attr('x2', xScale.bandwidth() * 0.5).attr('y1', function (e) {
       return yScale(Math.min(e.min, e.quartiles[0]));
     }).attr('y2', function (e) {
       return yScale(e.quartiles[0]);
     });
 
     // max line
-    s.select('line.max.hline').transition().duration(transitionTime).attr('x1', xScale.rangeBand() * 0.25).attr('x2', xScale.rangeBand() * 0.75).attr('y1', function (e) {
+    s.select('line.max.hline').transition().duration(transitionTime).attr('x1', xScale.bandwidth() * 0.25).attr('x2', xScale.bandwidth() * 0.75).attr('y1', function (e) {
       return yScale(Math.max(e.max, e.quartiles[2]));
     }).attr('y2', function (e) {
       return yScale(Math.max(e.max, e.quartiles[2]));
     });
 
     // max vline
-    s.select('line.max.vline').transition().duration(transitionTime).attr('x1', xScale.rangeBand() * 0.5).attr('x2', xScale.rangeBand() * 0.5).attr('y1', function (e) {
+    s.select('line.max.vline').transition().duration(transitionTime).attr('x1', xScale.bandwidth() * 0.5).attr('x2', xScale.bandwidth() * 0.5).attr('y1', function (e) {
       return yScale(e.quartiles[2]);
     }).attr('y2', function (e) {
       return yScale(Math.max(e.max, e.quartiles[2]));
@@ -260,12 +274,12 @@
     state.explodedBoxplots = [];
     console.log('state.explodedBoxplots', state.explodedBoxplots);
     selector.selectAll('.normal-points').each(function (g) {
-      d3$1.select(this).selectAll('circle').transition().ease(d3$1.ease('back-out')).duration(function () {
+      d3$1.select(this).selectAll('circle').transition().ease(d3$1.easeBackOut).duration(function () {
         return transitionTime * 1.5 + transitionTime * 1.5 * Math.random();
-      }).attr('cx', xScale.rangeBand() * 0.5).attr('cy', yScale(g.quartiles[1])).remove();
+      }).attr('cx', xScale.bandwidth() * 0.5).attr('cy', yScale(g.quartiles[1])).remove();
     });
 
-    selector.selectAll('.boxcontent').transition().ease(d3$1.ease('back-out')).duration(transitionTime * 1.5).delay(transitionTime).each(function (d, i) {
+    selector.selectAll('.boxcontent').transition().ease(d3$1.easeBackOut).duration(transitionTime * 1.5).delay(transitionTime).each(function (d, i) {
       var drawBoxplotOptions = {
         chartOptions: chartOptions,
         transitionTime: transitionTime,
@@ -283,7 +297,13 @@
   function createJitter() {
     console.log('createJitter() was called');
     var selector = this;
-    console.log('this from createJitter', this);
+    // console.log('selection from createJitter', selector;
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    console.log('args from createJitter', args);
 
     d3$1.select(selector).append('g').attr('class', 'explodingBoxplot outliers-points');
 
@@ -301,17 +321,23 @@
     var colorScale = options.colorScale;
 
     // console.log('this from createBoxplot', this);
-    var s = d3$1.select(selector).append('g').attr('class', 'explodingBoxplot box').attr('id', 'explodingBoxplot_box' + chartOptions.id + i).selectAll('.box').data([g]).enter();
+    var s = d3$1.select(selector).append('g').attr('class', 'explodingBoxplot box').attr('id', 'explodingBoxplot_box' + chartOptions.id + i);
+    // .selectAll('.box')
+    // .data([g])
+    // .enter();
 
-    s.append('rect').attr('class', 'explodingBoxplot box').attr('fill', function (d) {
-      return colorScale(d.normal[0][chartOptions.data.color_index]);
+    var createBoxplotSelection = s.selectAll('.box').data([g]);
+
+    createBoxplotSelection.enter().append('rect').merge(createBoxplotSelection).attr('class', 'explodingBoxplot box').attr('fill', function (d) {
+      console.log('d from createBoxplot', d);
+      colorScale(d.normal[0][chartOptions.data.color_index]);
     });
 
-    s.append('line').attr('class', 'explodingBoxplot median line'); // median line
-    s.append('line').attr('class', 'explodingBoxplot min line hline'); // min line
-    s.append('line').attr('class', 'explodingBoxplot line min vline'); // min vline
-    s.append('line').attr('class', 'explodingBoxplot max line hline'); // max line
-    s.append('line').attr('class', 'explodingBoxplot line max vline'); // max vline
+    createBoxplotSelection.append('line').attr('class', 'explodingBoxplot median line'); // median line
+    createBoxplotSelection.append('line').attr('class', 'explodingBoxplot min line hline'); // min line
+    createBoxplotSelection.append('line').attr('class', 'explodingBoxplot line min vline'); // min vline
+    createBoxplotSelection.append('line').attr('class', 'explodingBoxplot max line hline'); // max line
+    createBoxplotSelection.append('line').attr('class', 'explodingBoxplot line max vline'); // max vline
   }
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
@@ -340,6 +366,9 @@
 
   function computeBoxplot(data, iqrScalingFactor, value) {
     console.log('computeBoxplot() was called');
+    console.log('data from computeBoxplot', data);
+    console.log('iqrScalingFactor', iqrScalingFactor);
+    console.log('value from computeBoxplot', value);
     iqrScalingFactor = iqrScalingFactor || 1.5;
     value = value || Number;
     var seriev = data.map(function (m) {
@@ -347,6 +376,7 @@
     }).sort(d3$1.ascending);
     var quartiles = [d3$1.quantile(seriev, 0.25), d3$1.quantile(seriev, 0.5), d3$1.quantile(seriev, 0.75)];
     var iqr = (quartiles[2] - quartiles[0]) * iqrScalingFactor;
+    console.log('iqr', iqr);
     // separate outliers
     var max = Number.MIN_VALUE;
     var min = Number.MAX_VALUE;
@@ -358,12 +388,13 @@
         min = Math.min(min, v);
       }
       return type;
-    }).map(data);
+    }).object(data);
     if (!boxData.outlier) boxData.outlier = [];
     boxData.quartiles = quartiles;
     boxData.iqr = iqr;
     boxData.max = max;
     boxData.min = min;
+    console.log('boxData', boxData);
     return boxData;
   }
 
@@ -480,7 +511,10 @@
 
     function chart(selection) {
       console.log('chart() was called');
+      console.log('selection from chart()', selection);
       selection.each(function () {
+        var _this = this;
+
         var domParent = d3.select(this);
         // console.log('domParent', domParent);
         constituents.elements.domParent = domParent;
@@ -495,6 +529,7 @@
         var chartWrapper = chartRoot.append('g').attr('class', 'chartWrapper').attr('id', 'chartWrapper' + options.id);
 
         mobileScreen = $(window).innerWidth() < options.mobileScreenMax;
+        console.log('mobileScreen', mobileScreen);
 
         // boolean resize used to disable transitions during resize operation
         update = function update(resize) {
@@ -521,9 +556,9 @@
           }
           // console.log('groups after nest', groups);
 
-          var xScale = d3.scale.ordinal().domain(groups.map(function (d) {
+          var xScale = d3.scaleBand().domain(groups.map(function (d) {
             return d.key;
-          })).rangeRoundBands([0, options.width - options.margins.left - options.margins.right], options.display.boxpadding);
+          })).padding(options.display.boxpadding).rangeRound([0, options.width - options.margins.left - options.margins.right]);
 
           constituents.scales.X = xScale;
           // console.log('xScale.domain()', xScale.domain());
@@ -537,7 +572,7 @@
           });
           // console.log('groups after map', groups);
 
-          var yScale = d3.scale.linear().domain(d3.extent(dataSet.map(function (m) {
+          var yScale = d3.scaleLinear().domain(d3.extent(dataSet.map(function (m) {
             return m[options.axes.y.label];
           }))).range([options.height - options.margins.top - options.margins.bottom, 0]).nice();
 
@@ -545,7 +580,7 @@
           // console.log('yScale.domain()', yScale.domain());
           // console.log('yScale.range()', yScale.range());
 
-          var colorScale = d3.scale.ordinal().domain(d3.set(dataSet.map(function (m) {
+          var colorScale = d3.scaleOrdinal().domain(d3.set(dataSet.map(function (m) {
             return m[options.data.color_index];
           })).values()).range(Object.keys(colors).map(function (m) {
             return colors[m];
@@ -560,10 +595,10 @@
             events.update.ready(constituents, options, events);
           }
 
-          var xAxis = d3.svg.axis().scale(xScale).orient('bottom');
+          var xAxis = d3.axisBottom().scale(xScale);
           // console.log('xAxis', xAxis);
 
-          var yAxis = d3.svg.axis().scale(yScale).orient('left').tickFormat(options.axes.y.tickFormat);
+          var yAxis = d3.axisLeft().scale(yScale).tickFormat(options.axes.y.tickFormat);
           // console.log('yAxis', yAxis);
 
           var implodeBoxplotOptions = {
@@ -585,7 +620,7 @@
           // console.log('updateXAxis', updateXAxis);
           // console.log('updateXAxis[0]', updateXAxis[0])
 
-          updateXAxis.enter().append('g').attr('class', 'explodingBoxplot x axis').attr('id', 'xpb_xAxis').append('text').attr('class', 'axis text');
+          updateXAxis.enter().append('g').merge(updateXAxis).attr('class', 'explodingBoxplot x axis').attr('id', 'xpb_xAxis').append('text').attr('class', 'axis text');
 
           updateXAxis.exit().remove();
 
@@ -594,26 +629,33 @@
 
           var updateYAxis = chartWrapper.selectAll('#xpb_yAxis').data([0]);
 
-          updateYAxis.enter().append('g').attr('class', 'explodingBoxplot y axis').attr('id', 'xpb_yAxis').append('text').attr('class', 'axis text');
+          updateYAxis.enter().append('g').merge(updateYAxis).attr('class', 'explodingBoxplot y axis').attr('id', 'xpb_yAxis').append('text').attr('class', 'axis text');
 
           updateYAxis.exit().remove();
 
           updateYAxis.call(yAxis).select('.axis.text').attr('transform', 'rotate(-90)').attr('x', -options.margins.top - d3.mean(yScale.range())).attr('dy', '.71em').attr('y', -options.margins.left + 5).style('text-anchor', 'middle').text(options.axes.y.label);
 
           var boxContent = chartWrapper.selectAll('.boxcontent').data(groups);
-          // console.log('boxContent', boxContent);
+          console.log('boxContent', boxContent);
 
-          boxContent.enter().append('g').attr('class', 'explodingBoxplot boxcontent').attr('id', function (d, i) {
+          boxContent.enter().append('g').merge(boxContent).attr('class', 'explodingBoxplot boxcontent').attr('id', function (d, i) {
             return 'explodingBoxplot' + options.id + i;
           });
-          // console.log('boxContent after enter', boxContent);
+          console.log('boxContent after enter', boxContent);
 
           boxContent.exit().remove();
+          console.log('boxContent after exit', boxContent);
 
-          boxContent.attr('transform', function (d) {
+          chartWrapper.selectAll('g.boxcontent').attr('transform', function (d) {
             return 'translate(' + xScale(d.group) + ',0)';
+          }).each(function (d, i) {
+            console.log('d, testing selection.each', d);
+            console.log('i, testing selection.each', i);
           }).each(createJitter).each(function (d, i) {
-            var selector = '#' + d3.select(this).attr('id');
+            console.log('d from boxContent each', d);
+            console.log('this from boxContent each', _this);
+            var selector = '#' + d3.select(_this).attr('id');
+            // const selector = `#${d.attr('id')}`;
             var createBoxplotOptions = {
               chartOptions: options,
               i: i,
@@ -731,10 +773,11 @@
       }
 
       console.log('chart.data() was called');
+      console.log('value from chart.data', value);
+      console.log('args from chart.data', args);
       if (!args) return dataSet;
-      value.sort(function (x, y) {
-        return x['Set Score'].split('-').join('') - y['Set Score'].split('-').join('');
-      });
+      // this appears to be specific to the @tennisvisuals atpWta.json dataset
+      // value.sort((x, y) => x['Set Score'].split('-').join('') - y['Set Score'].split('-').join(''));
       dataSet = JSON.parse(JSON.stringify(value));
       return chart;
     };
