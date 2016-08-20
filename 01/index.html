@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
+<meta name='viewport' content='width=device-width'>
+<script src='https://d3js.org/d3.v3.js'></script>
+<script src='d3-tip.js'></script>
+<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
+<link rel='icon' href='data:;base64,iVBORw0KGgo='>
+<script src='explodingBoxplot.js'></script>
+<link rel='stylesheet' type='text/css' href='explodingBoxplot.css'>
+</head>
+<body id='body'>
+<div id='chartContainer'>
+</div>
+<script lang='babel' type='text/babel'>
+  // generate random data
+  var box1 = d3.range(100)
+    .map(d3.random.normal(Math.random()*100,5))
+    .map(function (d, i) {
+      return {
+        v: d,
+        g: 'box1',
+        t: 'pt 1' + i
+      }
+    });
+
+  var box2 = d3.range(100)
+    .map(d3.random.normal(Math.random()*100,30))
+    .map(function (d, i) {
+      return {
+        v: d,
+        g: 'box2',
+        t: 'pt 2' + i
+      }
+    });
+
+  var box3 = d3.range(100)
+    .map(function () {
+      return Math.random()*100
+    })
+    .map(function (d,i) {
+      return {
+        v: d,
+        g: 'box3',
+        t: 'pt 3' + i
+      }
+    });
+
+  // with outliers
+  var box4 = d3.range(80)
+    .map(d3.random.normal(50,5))
+    .concat(d3.range(20).map(d3.random.normal(50,25)))
+    .map(function (d,i) {
+      return {
+        v: d,
+        g: 'box4',
+        t: 'pt 4' + i
+      }
+    });
+
+  var data = box1.concat(box2).concat(box3).concat(box4);
+
+  var options = {
+    y: 'v',
+    data: {
+      group: 'g',
+      color_index: 'g',
+    },
+    color: 'g',
+    label: 't',
+    axes: {
+      y: {
+        label: 'v'
+      }
+    }
+  };
+
+  console.log('data', data);
+  console.log('explodingBoxplot', explodingBoxplot);
+  var chart = explodingBoxplot.plot();
+  // call chart on a div
+  chart.data(data);
+  chart.options(options);
+  chart(d3.select('#chartContainer'));
+  chart.update();
+</script>
+</body>
+</html>
