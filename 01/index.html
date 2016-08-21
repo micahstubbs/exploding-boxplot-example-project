@@ -15,53 +15,59 @@
 </div>
 <script lang='babel' type='text/babel'>
   // generate random data
-  var box1 = d3.range(100)
+  const box1 = d3.range(100)
     .map(d3.randomNormal(Math.random()*100,5))
-    .map(function (d, i) {
+    .map((d, i) => {
       return {
         v: d,
         g: 'box1',
         t: 'pt 1' + i
       }
     });
+  console.log('box1 random data', box1);
 
-  var box2 = d3.range(100)
+  const box2 = d3.range(100)
     .map(d3.randomNormal(Math.random()*100,30))
-    .map(function (d, i) {
+    .map((d, i) => {
       return {
         v: d,
         g: 'box2',
         t: 'pt 2' + i
       }
     });
+  console.log('box2 random data', box2);
 
-  var box3 = d3.range(100)
-    .map(function () {
-      return Math.random()*100
-    })
-    .map(function (d,i) {
+  const box3 = d3.range(100)
+    .map(() => Math.random()*100)
+    .map((d,i) => {
       return {
         v: d,
         g: 'box3',
         t: 'pt 3' + i
       }
     });
+  console.log('box3 random data', box3);
 
-  // with outliers
-  var box4 = d3.range(80)
+  // generate more random data, this time with outliers
+  const box4 = d3.range(80)
     .map(d3.randomNormal(50,5))
     .concat(d3.range(20).map(d3.randomNormal(50,25)))
-    .map(function (d,i) {
+    .map((d,i) => {
       return {
         v: d,
         g: 'box4',
         t: 'pt 4' + i
       }
     });
+  console.log('box4 random data', box4);
 
-  var data = box1.concat(box2).concat(box3).concat(box4);
+  // combine our four random data arrays-of-objects
+  const data = box1.concat(box2).concat(box3).concat(box4);
+  console.log('data', data);
 
-  var options = {
+  // tell explodingBoxplot how to group, color, and position
+  // the boxplots that represent our random data
+  const options = {
     y: 'v',
     data: {
       group: 'g',
@@ -78,21 +84,26 @@
       }
     }
   };
+  console.log('options for explodingBoxplot', options);
 
-  console.log('data', data);
+  // see what we are working with
   console.log('explodingBoxplot', explodingBoxplot);
-  var chart = explodingBoxplot.plot();
+
+  // assign a explodingBoxplot chart object to a variable called chart
+  const chart = explodingBoxplot.plot();
   
-  // pass in our data
+  // call the chart's data accessor function on our data
   chart.data(data);
 
-  // pass in the options object
+  // call the chart's options accessor function on our options object
   chart.options(options);
 
-  // call chart on a selector, in this case the id of a div
-  chart(d3.select('#chartContainer'));
+  // call the explodingBoxplot `chart` function itself on a selector
+  // in this case the id of a div
+  const selector = d3.select('#chartContainer') 
+  chart(selector);
 
-  // call the update function to render the boxplots
+  // call the update function to render the exploding boxplots
   chart.update();
 </script>
 </body>
