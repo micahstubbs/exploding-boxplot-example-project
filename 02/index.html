@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta http-equiv='Content-Type' content='text/html;charset=utf-8'>
+<meta name='viewport' content='width=device-width'>
+<script src='https://d3js.org/d3.v4.js'></script>
+<script src='d3-tip.js'></script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
+<link rel='icon' href='data:;base64,iVBORw0KGgo='>
+<script src='explodingBoxplot.js'></script>
+</head>
+<body id='body'>
+<div id='chartContainer'>
+</div>
+<script lang='babel' type='text/babel'>
+  d3.csv('iris.csv', (error, data) => {
+    if (error) throw error;
+    console.log('data', data);
+
+    // tell explodingBoxplot how to group, color, and position
+    // the boxplots that represent our randomNormal data
+    const options = {
+      y: 'petalLength',
+      data: {
+        group: 'class',
+        colorIndex: 'class',
+      },
+      color: 'class',
+      label: '',
+      axes: {
+        x: {
+          label: 'class'
+        },
+        y: {
+          label: 'petalLength'
+        }
+      }
+    };
+    console.log('options for explodingBoxplot', options);
+
+    // see what we are working with
+    console.log('explodingBoxplot', explodingBoxplot);
+
+    // assign a explodingBoxplot chart object to a variable called chart
+    const chart = explodingBoxplot.plot();
+    
+    // call the chart's data accessor function on our data
+    chart.data(data);
+
+    // call the chart's options accessor function on our options object
+    chart.options(options);
+
+    // call the explodingBoxplot `chart` function itself on a selector
+    // in this case the id of a div
+    const selector = d3.select('#chartContainer') 
+    chart(selector);
+
+    // call the update function to render the exploding boxplots
+    chart.update();
+  });
+</script>
+</body>
+</html>
