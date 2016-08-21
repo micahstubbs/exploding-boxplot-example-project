@@ -26,7 +26,7 @@ var xbp = explodingBoxplot();
 xbp.options({
   data: {
     group: 'Set Score',
-    color_index: 'Set Score',
+    colorIndex: 'Set Score',
     identifier: 'h2h'
   },
   axes: {

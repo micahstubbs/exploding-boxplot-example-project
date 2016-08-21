@@ -48,8 +48,8 @@ function defineTooltip(constituents, options, events) {
           .html(tipFunction);
 
   function tipFunction(d) {
-    const color = options.data.color_index && d[options.data.color_index] ?
-           constituents.scales.color(d[options.data.color_index]) : 'blue';
+    const color = options.data.colorIndex && d[options.data.colorIndex] ?
+           constituents.scales.color(d[options.data.colorIndex]) : 'blue';
 
     const identifier = options.data.identifier && d[options.data.identifier] ?
            d[options.data.identifier] : 'undefined';
@@ -102,7 +102,7 @@ function defaultDistribution(tooltip) {
         id: 'demo',
         data: {
           group: 'Set Score',
-          color_index: 'Set Score',
+          colorIndex: 'Set Score',
           identifier: 'h2h'
         },
         width: 700,
