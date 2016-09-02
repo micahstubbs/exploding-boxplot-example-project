@@ -8,13 +8,13 @@
 <script src='d3-tip.js'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.10.3/babel.min.js'></script>
 <link rel='icon' href='data:;base64,iVBORw0KGgo='>
-<script src='d3-exploding-boxplot.js'></script>
+<script src='explodingBoxplot.js'></script>
 </head>
 <body id='body'>
 <div id='chartContainer'>
 </div>
 <script lang='babel' type='text/babel'>
-  d3.csv('iris.csv', (error, inputData) => {
+  d3.csv('iris.csv', (error, data) => {
     if (error) throw error;
     console.log('data', data);
 
@@ -30,41 +30,20 @@
       label: '',
       axes: {
         x: {
-          variable: 'class',
           label: 'class'
         },
         y: {
-          variable: 'petalLength',
           label: 'petalLength'
         }
-      },
-      numericColumns: [
-        'petalLength',
-        'petalWidth',
-        'sepalLength',
-        'sepalWidth'
-      ]
+      }
     };
     console.log('options for explodingBoxplot', options);
 
-    // parse strings to numbers for numeric columns
-    const numericColumns = options.numericColumns;
-    const data = [];
-    inputData.forEach((d, i) => {
-      data.push(d);
-      numericColumns.forEach(e => {
-        data[i][e] = Number(d[e]);
-      })
-      if (typeof idColumn === 'undefined') {
-        data[i].id = i;
-      }
-    });
-
     // see what we are working with
-    console.log('d3ExplodingBoxplot', d3ExplodingBoxplot);
+    console.log('explodingBoxplot', explodingBoxplot);
 
     // assign a explodingBoxplot chart object to a variable called chart
-    const chart = d3ExplodingBoxplot.d3ExplodingBoxplot();
+    const chart = explodingBoxplot.plot();
     
     // call the chart's data accessor function on our data
     chart.data(data);
@@ -79,6 +58,35 @@
 
     // call the update function to render the exploding boxplots
     chart.update();
+
+    // test the chart update
+    const options2 = {
+      y: 'petalWidth',
+      data: {
+        group: 'class',
+        colorIndex: 'class',
+      },
+      color: 'class',
+      label: '',
+      axes: {
+        x: {
+          label: 'class'
+        },
+        y: {
+          label: 'petalWidth'
+        }
+      }
+    };
+
+    d3.selectAll('rect.box')
+      .on('mouseover', () => {
+        chart.data(data);
+        chart.options(options2);
+        hchart(selector);
+        chart.update();
+      })
+
+
   });
 </script>
 </body>
